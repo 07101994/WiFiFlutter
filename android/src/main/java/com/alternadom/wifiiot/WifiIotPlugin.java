@@ -379,14 +379,14 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                 return;
             }
 
-            poResult.error("Exception", "SSID not found", null);
+            poResult.error("Exception", "PreSharedKey not found", null);
         } else {
             if (apReservation != null) {
                 poResult.succes(apReservation.getSoftApConfiguration().getPassphrase());
                 return;
             }
 
-            poResult.error("Exception", "SSID not found", null);
+            poResult.error("Exception", "PreSharedKey not found", null);
         }
     }
 
@@ -474,6 +474,14 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
      */
     private void isWiFiAPEnabled(Result poResult) {
         try {
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                poResult.succes(null != apReservation && apReservation.getWifiConfiguration() != null);
+                return;
+            } else {
+                poResult.succes(null != apReservation && apReservation.getSoftApConfiguration() != null);
+                return;
+            }
+
             poResult.success(moWiFiAPManager.isWifiApEnabled());
         } catch (SecurityException e) {
             Log.e(WifiIotPlugin.class.getSimpleName(), e.getMessage(), null);
@@ -512,17 +520,20 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                     public void onStopped() {
                         super.onStopped();
                         Log.d(WifiIotPlugin.class.getSimpleName(), "LocalHotspot Stopped.");
+                        apReservation = null;
                     }
 
                     @Override
                     public void onFailed(int reason) {
                         super.onFailed(reason);
                         Log.d(WifiIotPlugin.class.getSimpleName(), "LocalHotspot failed with code: " + String.valueOf(reason));
+                        apReservation = null;
                     }
                 }, new Handler());
             } else {
                 if (apReservation != null) {
                     apReservation.close();
+                    apReservation = null;
                 } else {
                     Log.e(WifiIotPlugin.class.getSimpleName(), "Can't disable WiFi AP, apReservation is null.");
                 }
