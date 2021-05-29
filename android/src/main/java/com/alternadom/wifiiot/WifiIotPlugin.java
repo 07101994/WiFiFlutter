@@ -286,8 +286,20 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
             }
 
             poResult.error("Exception", "SSID not found", null);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            if (apReservation != null) {
+                poResult.succes(apReservation.getWifiConfiguration().SSID);
+                return;
+            }
+
+            poResult.error("Exception", "SSID not found", null);
         } else {
-            poResult.error("Exception [getWiFiAPSSID]", "Getting SSID name is not supported on API level >= 26", null);
+            if (apReservation != null) {
+                poResult.succes(apReservation.getSoftApConfiguration().getSsid());
+                return;
+            }
+
+            poResult.error("Exception", "SSID not found", null);
         }
     }
 
@@ -361,8 +373,20 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
             }
 
             poResult.error("Exception", "Wifi AP not Supported", null);
+        }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            if (apReservation != null) {
+                poResult.succes(apReservation.getWifiConfiguration().preSharedKey);
+                return;
+            }
+
+            poResult.error("Exception", "SSID not found", null);
         } else {
-            poResult.error("Exception [getWiFIAPPreSharedKey]", "Getting WiFi AP password is not supported on API level >= 26", null);
+            if (apReservation != null) {
+                poResult.succes(apReservation.getSoftApConfiguration().getPassphrase());
+                return;
+            }
+
+            poResult.error("Exception", "SSID not found", null);
         }
     }
 
@@ -473,7 +497,7 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
         /**
          * Using LocalOnlyHotspotCallback when setting WiFi AP state on API level >= 29
          */
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             moWiFiAPManager.setWifiApEnabled(null, enabled);
         } else {
             if (enabled) {
