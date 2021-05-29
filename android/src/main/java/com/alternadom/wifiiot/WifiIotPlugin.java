@@ -288,14 +288,14 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
             poResult.error("Exception", "SSID not found", null);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             if (apReservation != null) {
-                poResult.succes(apReservation.getWifiConfiguration().SSID);
+                poResult.success(apReservation.getWifiConfiguration().SSID);
                 return;
             }
 
             poResult.error("Exception", "SSID not found", null);
         } else {
             if (apReservation != null) {
-                poResult.succes(apReservation.getSoftApConfiguration().getSsid());
+                poResult.success(apReservation.getSoftApConfiguration().getSsid());
                 return;
             }
 
@@ -375,14 +375,14 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
             poResult.error("Exception", "Wifi AP not Supported", null);
         }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             if (apReservation != null) {
-                poResult.succes(apReservation.getWifiConfiguration().preSharedKey);
+                poResult.success(apReservation.getWifiConfiguration().preSharedKey);
                 return;
             }
 
             poResult.error("Exception", "PreSharedKey not found", null);
         } else {
             if (apReservation != null) {
-                poResult.succes(apReservation.getSoftApConfiguration().getPassphrase());
+                poResult.success(apReservation.getSoftApConfiguration().getPassphrase());
                 return;
             }
 
@@ -475,10 +475,10 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
     private void isWiFiAPEnabled(Result poResult) {
         try {
              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                poResult.succes(null != apReservation && apReservation.getWifiConfiguration() != null);
+                poResult.success(null != apReservation && apReservation.getWifiConfiguration() != null);
                 return;
-            } else {
-                poResult.succes(null != apReservation && apReservation.getSoftApConfiguration() != null);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                poResult.success(null != apReservation && apReservation.getSoftApConfiguration() != null);
                 return;
             }
 
