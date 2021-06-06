@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import info.whitebyte.hotspotmanager.ClientScanResult;
 import info.whitebyte.hotspotmanager.FinishScanListener;
@@ -507,6 +508,15 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
          */
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             moWiFiAPManager.setWifiApEnabled(null, enabled);
+
+            android.net.wifi.WifiConfiguration oWiFiConfig = moWiFiAPManager.getWifiApConfiguration();
+
+            oWiFiConfig.SSID = "My_File_Sender";
+
+            String randomUuid = UUID.randomUUID().toString().toLowerCase().replaceAll("[\\s\\-()]", "");
+            oWiFiConfig.preSharedKey = randomUuid.substring(0, 11);
+
+            moWiFiAPManager.setWifiApConfiguration(oWiFiConfig);
         } else {
             if (enabled) {
                 moWiFi.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
