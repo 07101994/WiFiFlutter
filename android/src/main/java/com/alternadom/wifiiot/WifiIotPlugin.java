@@ -32,7 +32,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import info.whitebyte.hotspotmanager.ClientScanResult;
 import info.whitebyte.hotspotmanager.FinishScanListener;
@@ -68,6 +67,7 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
     private List<WifiNetworkSuggestion> networkSuggestions;
     private List<String> ssidsToBeRemovedOnExit = new ArrayList<String>();
     private List<WifiNetworkSuggestion> suggestionsToBeRemovedOnExit = new ArrayList<>();
+    private Result poResultForWifiApEnabled;
 
     // initialize members of this class with Context
     private void initWithContext(Context context) {
@@ -373,6 +373,11 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                 return;
             }
 
+            if (oWiFiConfig != null && oWiFiConfig.preSharedKey == null) {
+                poResult.success("-");
+                return;
+            }
+
             poResult.error("Exception", "Wifi AP not Supported", null);
         }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             if (apReservation != null) {
@@ -507,23 +512,23 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
          * Using LocalOnlyHotspotCallback when setting WiFi AP state on API level >= 29
          */
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            moWiFiAPManager.setWifiApEnabled(null, enabled);
-
-            android.net.wifi.WifiConfiguration oWiFiConfig = moWiFiAPManager.getWifiApConfiguration();
-
-            oWiFiConfig.SSID = "My_File_Sender";
-
-            String randomUuid = UUID.randomUUID().toString().toLowerCase().replaceAll("[\\s\\-()]", "");
-            oWiFiConfig.preSharedKey = randomUuid.substring(0, 11);
-
-            moWiFiAPManager.setWifiApConfiguration(oWiFiConfig);
+            if (enabled) {
+                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                moContext.startActivity(intent);
+                poResult.success(null);
+            } else {
+                moWiFiAPManager.setWifiApEnabled(null, enabled);
+                poResult.success(null);
+            }
         } else {
             if (enabled) {
+                poResultForWifiApEnabled = poResult;
                 moWiFi.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
                     @Override
                     public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
                         super.onStarted(reservation);
                         apReservation = reservation;
+                        poResultForWifiApEnabled.success(null);
                     }
 
                     @Override
@@ -538,6 +543,7 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                         super.onFailed(reason);
                         Log.d(WifiIotPlugin.class.getSimpleName(), "LocalHotspot failed with code: " + String.valueOf(reason));
                         apReservation = null;
+                        poResultForWifiApEnabled.error("Error creating Hotspot", "LocalHotspot failed with code: " + String.valueOf(reason), "");
                     }
                 }, new Handler());
             } else {
@@ -547,10 +553,10 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                 } else {
                     Log.e(WifiIotPlugin.class.getSimpleName(), "Can't disable WiFi AP, apReservation is null.");
                 }
+
+                poResult.success(null);
             }
         }
-
-        poResult.success(null);
     }
 
     /**
