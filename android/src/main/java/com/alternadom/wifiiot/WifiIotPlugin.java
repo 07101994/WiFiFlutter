@@ -67,7 +67,6 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
     private List<WifiNetworkSuggestion> networkSuggestions;
     private List<String> ssidsToBeRemovedOnExit = new ArrayList<String>();
     private List<WifiNetworkSuggestion> suggestionsToBeRemovedOnExit = new ArrayList<>();
-    private Result poResultForWifiApEnabled;
 
     // initialize members of this class with Context
     private void initWithContext(Context context) {
@@ -522,13 +521,11 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
             }
         } else {
             if (enabled) {
-                poResultForWifiApEnabled = poResult;
                 moWiFi.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
                     @Override
                     public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
                         super.onStarted(reservation);
                         apReservation = reservation;
-                        poResultForWifiApEnabled.success(null);
                     }
 
                     @Override
@@ -543,9 +540,9 @@ public class WifiIotPlugin implements FlutterPlugin, ActivityAware, MethodCallHa
                         super.onFailed(reason);
                         Log.d(WifiIotPlugin.class.getSimpleName(), "LocalHotspot failed with code: " + String.valueOf(reason));
                         apReservation = null;
-                        poResultForWifiApEnabled.error("Error creating Hotspot", "LocalHotspot failed with code: " + String.valueOf(reason), "");
                     }
                 }, new Handler());
+                poResult.success(null);
             } else {
                 if (apReservation != null) {
                     apReservation.close();
